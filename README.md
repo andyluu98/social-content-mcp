@@ -4,76 +4,122 @@
 
 MCP server that bridges [ima2-gen](https://github.com/lidge-jun/ima2-gen) (free GPT image generation via Codex OAuth) and [AiToEarn](https://github.com/yikart/AiToEarn) (multi-platform social publishing) so any MCP-compatible AI assistant — **Claude Code, Codex CLI, Gemini CLI** — can compose, illustrate, and publish posts in one conversation.
 
-**One sentence:** chat with your AI → it generates the image, writes the caption, and posts to Facebook / Instagram / Threads / X / Pinterest.
+**In one sentence:** chat with your AI → it generates the image, writes the caption, and posts to Facebook / Instagram / Threads / X / Pinterest.
 
-## Features
+## What you get
 
-- 🎨 **Free image generation** via Codex OAuth (no OpenAI API key needed)
-- 📢 **Publish to 6 platforms** (FB, IG, TikTok\*, Threads, X, Pinterest)
+- 🎨 **Free image generation** via Codex OAuth — no OpenAI API key
+- 📢 **Publish to 6 platforms** (Facebook, Instagram, TikTok\*, Threads, X, Pinterest)
 - 🤖 **Works with any MCP client** — Claude Code, Codex CLI, Gemini CLI
-- 🧙 **One-command setup wizard** — `social-content-mcp init`
-- 🌐 **Free CDN by default** (Catbox) — no extra signup required
-- 💰 **Pay-as-you-go** through AiToEarn credits (50 free on signup)
+- 🧙 **One-command setup wizard** — `social-content-mcp init` handles everything
+- 🌐 **Free CDN by default** (Catbox) — no extra signup
+- 💰 **Pay-as-you-go** via AiToEarn credits (50 free on signup, ~$0.50)
 
-\* TikTok publishing is limited to non-public privacy levels due to AiToEarn / TikTok policy — see [Known limitations](#known-limitations).
+\* TikTok publishing is currently blocked by AiToEarn / TikTok policy — see [Known limitations](#known-limitations).
 
-## Quick start
+## First post in 10 minutes
+
+### 1. Install prerequisites
+
+| Required | Where to get | Install check |
+|---|---|---|
+| Python 3.11+ | https://python.org | `python --version` |
+| Node.js 20+ | https://nodejs.org | `node --version` |
+| Git | https://git-scm.com | `git --version` |
+
+### 2. Clone and install this repo
 
 ```bash
-pip install social-content-mcp     # not yet on PyPI — clone for now
-social-content-mcp init             # wizard handles everything
+git clone https://github.com/andyluu98/social-content-mcp.git
+cd social-content-mcp
+
+# Windows:
+python -m venv .venv
+.venv\Scripts\activate
+
+# Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -e .
 ```
 
-Then open your AI client and say:
+### 3. Sign up for the free upstream services
 
-> "Create a Facebook post about AI productivity, minimal illustration"
+| Service | Why | How |
+|---|---|---|
+| ChatGPT / Codex | Free image generation | `npx @openai/codex login` (use your ChatGPT account) |
+| AiToEarn | Publishing | Sign up at https://aitoearn.ai → Settings → API Key → copy the `ak_...` value |
 
-That's it.
+You'll paste the AiToEarn key in the next step.
 
-## Requirements
-
-| | Why |
-|---|---|
-| Python 3.11+ | The MCP server runtime |
-| Node.js 20+ | For ima2-gen image generator |
-| A ChatGPT account | Free Codex OAuth login (no API key needed) |
-| An [AiToEarn](https://aitoearn.ai) account | 50 free credits, ~30¢ |
-| An MCP-compatible AI client | Claude Code / Codex CLI / Gemini CLI |
-
-## What the wizard does
-
-`social-content-mcp init` walks through:
-
-1. Verifies Python & Node versions
-2. Offers to install `ima2-gen` globally via npm
-3. Offers to run `npx @openai/codex login` for you
-4. Asks for AiToEarn API key + storage provider (Catbox by default, no key)
-5. Writes `~/.social-content-mcp/.env`
-6. Detects Claude / Codex / Gemini configs and registers the MCP server
-7. Validates the setup with `doctor`
-
-## Manual setup (advanced)
+### 4. Run the wizard
 
 ```bash
-# 1. Clone & install
-git clone https://github.com/<you>/social-content-mcp
-cd social-content-mcp
-python -m venv .venv && .venv/Scripts/activate
-pip install -e .
+social-content-mcp init
+```
 
-# 2. Install ima2-gen and login
-npm install -g ima2-gen
-npx @openai/codex login
+The wizard walks through 6 steps. Answer like this for the simplest path:
 
-# 3. Write env (or copy .env.example)
-mkdir -p ~/.social-content-mcp
-cat > ~/.social-content-mcp/.env <<EOF
-AITOEARN_API_KEY=ak_xxxxxxxxxxxxxxxx
-STORAGE_PROVIDER=catbox
-EOF
+```
+[1/6] Kiểm tra Python + Node...           → automatic
+[2/6] Cài ima2-gen?                        → Y
+[3/6] Login Codex OAuth?                   → Y (browser will open)
+[4/6] AiToEarn API key: ak_xxxxx          → paste your key
+      CDN provider: 1                      → 1 (catbox, no key needed)
+[5/6] Writing config...                    → automatic
+[6/6] Register MCP into Claude / Codex / Gemini? → Y for whichever you use
+```
 
-# 4. Register MCP — Claude Code
-claude mcp add --scope user social-content -- python -m server
+When you see `✓ Setup xong`, you're ready.
+
+### 5. Start ima2-gen in a separate terminal
+
+ima2-gen runs as a local image-generation service. Keep this terminal open while you use the MCP:
+
+```bash
+ima2 serve
+```
+
+### 6. Open your AI client and try
+
+Open **Claude Code** (or Codex CLI / Gemini CLI). In a new chat, type:
+
+> Generate an AI productivity image and post it to my Facebook page about modern marketing.
+
+The AI will:
+1. Call `list_accounts` → finds your Facebook page
+2. Call `generate_image` → image saved to local file
+3. Call `upload_image` → public URL via Catbox
+4. Call `publish_post` → submits to Facebook
+5. Call `check_status` → confirms post is live
+
+If something goes wrong, run:
+
+```bash
+social-content-mcp doctor
+```
+
+It reports which piece is missing or unreachable.
+
+## Example conversation
+
+```
+You: Đăng FB Aithetech VN bài về Productivity AI, ảnh phong cách minimal.
+
+AI:  Got it. Let me find your Facebook accounts first.
+     [calls list_accounts]
+     Found "Aithetech VN" (id: facebook_997677576765087).
+     Generating a minimal illustration...
+     [calls generate_image with prompt "minimal vector illustration of
+      AI assistant boosting productivity, clean white background"]
+     Image saved to ./output/1747512345_abc.png
+     [calls upload_image]
+     Uploaded: https://files.catbox.moe/abc123.png
+     [calls publish_post]
+     Submitted (flowId: 78d5...). Waiting 6 seconds...
+     [calls check_status]
+     ✓ Posted: https://facebook.com/.../posts/12211...
 ```
 
 ## Tool catalog
@@ -85,23 +131,81 @@ claude mcp add --scope user social-content -- python -m server
 | `list_accounts` | List social accounts you've connected on AiToEarn |
 | `check_balance` | Show remaining AiToEarn credits |
 | `publish_post` | Publish one post to one platform |
-| `compose_and_publish` | One-shot: gen image + upload + publish |
+| `compose_and_publish` | One-shot: generate image + upload + publish |
 | `check_status` | Track an in-flight publish task by flowId |
 | `ima2_health` | Debug: ping ima2-gen service |
 
 ## Commands
 
 ```bash
-social-content-mcp init       # interactive setup
-social-content-mcp serve      # run MCP stdio server (default)
+social-content-mcp init       # interactive setup wizard
+social-content-mcp serve      # run MCP stdio server (the default)
 social-content-mcp doctor     # diagnose what's missing
 ```
 
+## Manual setup (without the wizard)
+
+```bash
+# After git clone + pip install -e .:
+
+npm install -g ima2-gen
+npx @openai/codex login
+
+# Write env (use your home directory):
+mkdir -p ~/.social-content-mcp
+cat > ~/.social-content-mcp/.env <<EOF
+AITOEARN_API_KEY=ak_xxxxxxxxxxxxxxxx
+STORAGE_PROVIDER=catbox
+EOF
+
+# Register MCP into Claude Code:
+claude mcp add --scope user social-content -- python -m server
+```
+
+For Codex CLI, add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.social-content]
+command = "python"
+args = ["-m", "server"]
+```
+
+For Gemini CLI, add to `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "social-content": { "command": "python", "args": ["-m", "server"] }
+  }
+}
+```
+
+## Troubleshooting
+
+**`ima2-gen không reachable` in doctor**
+Start `ima2 serve` in a separate terminal. It binds to port 3333 by default.
+
+**`AITOEARN_API_KEY chưa set`**
+Check `~/.social-content-mcp/.env` exists and contains the key. Re-run `social-content-mcp init` to recreate it.
+
+**Codex login fails on Windows behind a proxy**
+Set `HTTP_PROXY` and `HTTPS_PROXY` in the terminal running `codex login`. Some Windows security tools block port 10531 — the wizard's `doctor` will surface this.
+
+**Facebook publish error: `Image upload failed`**
+Facebook requires at least one image — text-only posts fail. Generate or attach an image.
+
+**TikTok publish fails every time**
+Known limitation. AiToEarn's MCP hard-codes `PUBLIC_TO_EVERYONE` but TikTok blocks this for non-reviewed apps. Workaround: post via the AiToEarn web dashboard at https://aitoearn.ai and choose `SELF_ONLY` or `Followers Only` privacy.
+
+**Image generation fails with `API_KEY_REQUIRED`**
+You're using the API provider path instead of OAuth. Run `npx @openai/codex login` again, then restart `ima2 serve`.
+
 ## Known limitations
 
-- **TikTok**: AiToEarn hard-codes privacy to `PUBLIC_TO_EVERYONE`, but TikTok blocks this for any non-reviewed third-party app. Every TikTok publish via this MCP fails today. Workaround: post via AiToEarn's web dashboard and pick `SELF_ONLY` or `Followers Only`.
+- **TikTok**: see Troubleshooting above. Until AiToEarn exposes `privacy_level` through MCP, every TikTok publish through this server fails.
 - **Facebook text-only posts** are not supported — at least one image is required.
-- **Catbox free tier** has no documented rate limit but can throttle on burst.
+- **Catbox** has no published rate limit but throttles on burst — switch to ImgBB if you upload many images per minute.
+- **Token costs** — gen ảnh free qua Codex OAuth tốn ChatGPT quota (gói Plus ~80 gen/3h). API path costs your OpenAI key.
 
 ## Architecture
 
@@ -121,7 +225,7 @@ MIT — code in this repo. ima2-gen and AiToEarn are governed by their own licen
 
 ## Contributing
 
-Issues and PRs welcome. Maintained on weekend pace (~2 hours/week). For features needing heavier work, please open an issue first to discuss.
+Issues and PRs welcome. Maintained at weekend pace (~2 hours per week). For features needing heavier work, please open an issue first to discuss.
 
 ---
 
@@ -133,72 +237,117 @@ MCP server kết nối [ima2-gen](https://github.com/lidge-jun/ima2-gen) (sinh �
 
 **Một câu:** chat với AI → nó tự tạo ảnh, viết caption, đăng lên Facebook / Instagram / Threads / X / Pinterest.
 
-## Tính năng
+## Bạn nhận được gì
 
-- 🎨 **Sinh ảnh AI miễn phí** qua Codex OAuth (không cần API key OpenAI)
+- 🎨 **Sinh ảnh AI miễn phí** qua Codex OAuth — không cần API key OpenAI
 - 📢 **Đăng 6 nền tảng** (FB, IG, TikTok\*, Threads, X, Pinterest)
-- 🤖 **Tương thích mọi MCP client** — Claude Code, Codex CLI, Gemini CLI
+- 🤖 **Mọi MCP client đều dùng được** — Claude Code, Codex CLI, Gemini CLI
 - 🧙 **Cài 1 lệnh duy nhất** — `social-content-mcp init`
-- 🌐 **CDN free mặc định** (Catbox) — không cần đăng ký
+- 🌐 **CDN free mặc định** (Catbox)
 - 💰 **Trả theo dùng** qua credit AiToEarn (50 credit free khi signup)
 
-\* TikTok bị giới hạn privacy không public do chính sách AiToEarn / TikTok — xem [Hạn chế đã biết](#hạn-chế-đã-biết).
+\* TikTok hiện bị chặn do chính sách AiToEarn / TikTok — xem [Hạn chế đã biết](#hạn-chế-đã-biết).
 
-## Cài nhanh
+## Bài đăng đầu tiên trong 10 phút
+
+### 1. Cài prerequisite
+
+| Cần | Lấy ở đâu | Check |
+|---|---|---|
+| Python 3.11+ | https://python.org | `python --version` |
+| Node.js 20+ | https://nodejs.org | `node --version` |
+| Git | https://git-scm.com | `git --version` |
+
+### 2. Clone & install repo
 
 ```bash
-pip install social-content-mcp     # chưa lên PyPI — clone tạm
-social-content-mcp init             # wizard lo hết
+git clone https://github.com/andyluu98/social-content-mcp.git
+cd social-content-mcp
+
+# Windows:
+python -m venv .venv
+.venv\Scripts\activate
+
+# Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -e .
 ```
 
-Mở AI client của bạn, nói:
+### 3. Signup 2 service free
 
-> "Tạo bài đăng Facebook về AI productivity, ảnh minimal"
+| Dịch vụ | Để làm gì | Cách |
+|---|---|---|
+| ChatGPT / Codex | Gen ảnh free | `npx @openai/codex login` (dùng account ChatGPT) |
+| AiToEarn | Đăng bài | https://aitoearn.ai → Settings → API Key → copy `ak_...` |
 
-Xong.
+Paste AiToEarn key ở bước sau.
 
-## Yêu cầu
-
-| | Tại sao |
-|---|---|
-| Python 3.11+ | Runtime của MCP server |
-| Node.js 20+ | Cho ima2-gen sinh ảnh |
-| Tài khoản ChatGPT | Login Codex OAuth free (không cần API key) |
-| Tài khoản [AiToEarn](https://aitoearn.ai) | Có 50 credit free (~7k VNĐ) |
-| AI client tương thích MCP | Claude Code / Codex CLI / Gemini CLI |
-
-## Wizard làm những gì
-
-`social-content-mcp init` đi qua:
-
-1. Check Python + Node version
-2. Mời cài `ima2-gen` global qua npm
-3. Mời chạy `npx @openai/codex login` giúp bạn
-4. Hỏi AiToEarn API key + chọn CDN (mặc định Catbox, không cần key)
-5. Ghi `~/.social-content-mcp/.env`
-6. Detect Claude / Codex / Gemini config và đăng ký MCP server
-7. Kiểm tra bằng `doctor`
-
-## Cài tay (nâng cao)
+### 4. Chạy wizard
 
 ```bash
-# 1. Clone & install
-git clone https://github.com/<bạn>/social-content-mcp
-cd social-content-mcp
-python -m venv .venv && .venv\Scripts\activate
-pip install -e .
+social-content-mcp init
+```
 
-# 2. Cài ima2-gen + login
-npm install -g ima2-gen
-npx @openai/codex login
+Trả lời nhanh:
 
-# 3. Ghi env
-mkdir -p ~/.social-content-mcp
-echo "AITOEARN_API_KEY=ak_xxxxxxxxxxxx" > ~/.social-content-mcp/.env
-echo "STORAGE_PROVIDER=catbox" >> ~/.social-content-mcp/.env
+```
+[1/6] Check Python + Node              → tự động
+[2/6] Cài ima2-gen?                    → Y
+[3/6] Login Codex OAuth?               → Y (browser sẽ mở)
+[4/6] AiToEarn key: ak_xxx             → paste key
+      CDN: 1                            → 1 (catbox, free)
+[5/6] Ghi config                       → tự động
+[6/6] Đăng ký vào Claude/Codex/Gemini  → Y cho cái nào bạn dùng
+```
 
-# 4. Đăng ký MCP — Claude Code
-claude mcp add --scope user social-content -- python -m server
+Khi thấy `✓ Setup xong` là OK.
+
+### 5. Chạy ima2-gen ở terminal riêng
+
+```bash
+ima2 serve
+```
+
+Giữ terminal này mở khi đang dùng MCP.
+
+### 6. Mở AI client thử
+
+Trong **Claude Code** (hoặc Codex / Gemini), gõ:
+
+> Đăng FB bài về AI productivity, ảnh phong cách minimal.
+
+AI sẽ:
+1. `list_accounts` → tìm Facebook Page của bạn
+2. `generate_image` → ra file local
+3. `upload_image` → URL public qua Catbox
+4. `publish_post` → submit lên Facebook
+5. `check_status` → confirm đăng thành công
+
+Lỗi đâu, chạy:
+
+```bash
+social-content-mcp doctor
+```
+
+## Ví dụ hội thoại
+
+```
+Bạn: Đăng FB Aithetech VN bài về Productivity AI, ảnh phong cách minimal.
+
+AI:  OK. Tôi tìm Facebook account của bạn trước.
+     [gọi list_accounts]
+     Tìm thấy "Aithetech VN" (id: facebook_997677576765087).
+     Đang gen ảnh minimal...
+     [gọi generate_image]
+     Ảnh lưu ở ./output/1747512345_abc.png
+     [gọi upload_image]
+     URL: https://files.catbox.moe/abc123.png
+     [gọi publish_post]
+     Submit xong (flowId: 78d5...). Chờ 6 giây...
+     [gọi check_status]
+     ✓ Đã đăng: https://facebook.com/.../posts/12211...
 ```
 
 ## Danh sách tool
@@ -206,27 +355,83 @@ claude mcp add --scope user social-content -- python -m server
 | Tool | Tác dụng |
 |---|---|
 | `generate_image` | Sinh 1 ảnh AI từ prompt (Codex OAuth, free) |
-| `upload_image` | Upload ảnh local → URL public (Catbox hoặc ImgBB) |
-| `list_accounts` | List account social đã connect AiToEarn |
-| `check_balance` | Xem credit AiToEarn còn lại |
-| `publish_post` | Đăng 1 bài lên 1 platform |
-| `compose_and_publish` | One-shot: gen ảnh + upload + đăng |
-| `check_status` | Track flowId của task publish |
+| `upload_image` | Upload ảnh local → URL public (Catbox/ImgBB) |
+| `list_accounts` | List account đã connect AiToEarn |
+| `check_balance` | Xem credit còn lại |
+| `publish_post` | Đăng 1 bài 1 platform |
+| `compose_and_publish` | One-shot: gen + upload + đăng |
+| `check_status` | Track flowId |
 | `ima2_health` | Debug ima2-gen |
 
 ## Lệnh
 
 ```bash
 social-content-mcp init       # wizard
-social-content-mcp serve      # run MCP stdio (mặc định)
+social-content-mcp serve      # MCP stdio (mặc định)
 social-content-mcp doctor     # chẩn đoán
 ```
 
+## Cài tay (không qua wizard)
+
+```bash
+# Sau git clone + pip install -e .:
+
+npm install -g ima2-gen
+npx @openai/codex login
+
+mkdir -p ~/.social-content-mcp
+cat > ~/.social-content-mcp/.env <<EOF
+AITOEARN_API_KEY=ak_xxxxxxxxxxxx
+STORAGE_PROVIDER=catbox
+EOF
+
+claude mcp add --scope user social-content -- python -m server
+```
+
+Codex CLI — thêm vào `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.social-content]
+command = "python"
+args = ["-m", "server"]
+```
+
+Gemini CLI — thêm vào `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "social-content": { "command": "python", "args": ["-m", "server"] }
+  }
+}
+```
+
+## Lỗi hay gặp
+
+**`ima2-gen không reachable` trong doctor**
+Chạy `ima2 serve` ở terminal riêng. Port mặc định 3333.
+
+**`AITOEARN_API_KEY chưa set`**
+Kiểm tra file `~/.social-content-mcp/.env`. Chạy lại `social-content-mcp init` để recreate.
+
+**Codex login fail trên Windows do proxy**
+Set `HTTP_PROXY` và `HTTPS_PROXY` trong terminal trước khi login. Tool bảo mật Windows hay chặn port 10531 — `doctor` sẽ chỉ ra.
+
+**Facebook báo `Image upload failed`**
+Facebook bắt buộc có ít nhất 1 ảnh. Gen hoặc đính kèm ảnh.
+
+**TikTok luôn fail**
+Hạn chế đã biết. AiToEarn hard-code privacy `PUBLIC_TO_EVERYONE`, TikTok chặn cho app bên thứ ba chưa qua App Review. Workaround: đăng tay qua web dashboard https://aitoearn.ai, chọn `SELF_ONLY` hoặc `Followers Only`.
+
+**Gen ảnh báo `API_KEY_REQUIRED`**
+Đang dùng provider API thay vì OAuth. Chạy lại `npx @openai/codex login` rồi restart `ima2 serve`.
+
 ## Hạn chế đã biết
 
-- **TikTok**: AiToEarn hard-code privacy `PUBLIC_TO_EVERYONE`, mà TikTok lại chặn cho mọi app bên thứ ba chưa qua App Review. Mọi publish TikTok qua MCP đều fail. Workaround: đăng qua web dashboard aitoearn.ai và chọn `SELF_ONLY` hoặc `Followers Only`.
-- **Facebook text-only**: không hỗ trợ — bắt buộc ít nhất 1 ảnh.
-- **Catbox**: free, không công bố rate limit nhưng có thể throttle khi burst.
+- **TikTok**: xem mục Lỗi ở trên.
+- **Facebook text-only**: không hỗ trợ — phải có ảnh.
+- **Catbox**: throttle khi upload burst — dùng ImgBB nếu upload nhiều/phút.
+- **Codex OAuth quota**: free qua ChatGPT Plus ~80 ảnh/3 giờ.
 
 ## Kiến trúc
 
@@ -236,7 +441,7 @@ AI client (Claude / Codex / Gemini)
         ▼
 social-content-mcp (Python, FastMCP)
         ├── → ima2-gen (local :3333)   → gen ảnh qua Codex OAuth
-        ├── → Catbox / ImgBB           → upload local → URL public
+        ├── → Catbox / ImgBB           → upload → URL public
         └── → AiToEarn (cloud MCP)     → đăng FB / IG / TikTok / ...
 ```
 
