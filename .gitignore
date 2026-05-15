@@ -1,0 +1,36 @@
+# env / secrets
+.env
+.env.local
+*.key
+*.pem
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# upstream repos cloned for reference, not part of distribution
+aitoearn/
+ima2-gen/
+
+# ima2-gen state
+.ima2/
+
+# generated assets
+output/
+tmp/
+*.tmp.png
+*.tmp.jpg
+
+# editor
+.vscode/
+.idea/
+*.swp

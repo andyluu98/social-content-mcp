@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "social-content-mcp"
+version = "0.1.0"
+description = "MCP server bridging ima2-gen (free GPT image gen) and AiToEarn (social publishing)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "haivv", email = "haivv.002@gmail.com" }]
+dependencies = [
+  "mcp[cli]>=1.2.0",
+  "httpx>=0.27",
+  "python-dotenv>=1.0",
+  "pydantic>=2.7",
+]
+
+[project.scripts]
+social-content-mcp = "server.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["server"]
