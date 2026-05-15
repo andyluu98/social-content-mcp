@@ -29,8 +29,7 @@ jobs:
         run: pip install -e .
 
       - name: Compile-check all Python files
-        run: |
-          python -m py_compile server/*.py server/clients/*.py server/tools/*.py
+        run: python -m compileall -q server
 
       - name: Import sanity (no missing deps)
         run: |
