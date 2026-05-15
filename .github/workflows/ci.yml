@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} · Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Install package
+        run: pip install -e .
+
+      - name: Compile-check all Python files
+        run: |
+          python -m py_compile server/*.py server/clients/*.py server/tools/*.py
+
+      - name: Import sanity (no missing deps)
+        run: |
+          python -c "from server.cli import main; from server.wizard import run as w; from server.doctor import run as d; from server.clients import upload_to_cdn; print('imports ok')"
+
+      - name: CLI help works
+        run: python -m server --help
