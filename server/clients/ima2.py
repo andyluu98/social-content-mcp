@@ -69,12 +69,16 @@ async def generate_image(
     except httpx.HTTPError as e:
         raise Ima2Error(f"ima2-gen /api/generate fail: {e}") from e
 
+    # ima2-gen có 2 format response tùy version:
+    #   cũ:  {"images": [{"image": "data:...", "filename": ..., "revisedPrompt": ...}]}
+    #   mới: {"image": "data:...", "filename": ..., "revisedPrompt": ...}
+    # Chấp nhận cả 2.
     images = data.get("images") or []
-    if not images:
+    first = images[0] if images else data
+    data_url = first.get("image", "")
+    if not data_url:
         raise Ima2Error(f"ima2-gen không trả ảnh nào. Response: {data!r}")
 
-    first = images[0]
-    data_url = first.get("image", "")
     m = _DATA_URL_RE.match(data_url)
     if not m:
         raise Ima2Error(f"image field không phải data URL hợp lệ: {data_url[:60]}...")
