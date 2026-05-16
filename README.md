@@ -184,6 +184,7 @@ For Gemini CLI, add to `~/.gemini/settings.json`:
 
 **`ima2-gen không reachable` in doctor**
 Start `ima2 serve` in a separate terminal. It binds to port 3333 by default.
+If you previously had multiple `ima2 serve` instances running, the autodiscovery file `~/.ima2/server.json` may point to a dead port (3334+). Kill all `node` / `ima2` processes, then run a single `ima2 serve` and re-check `doctor`.
 
 **`AITOEARN_API_KEY chưa set`**
 Check `~/.social-content-mcp/.env` exists and contains the key. Re-run `social-content-mcp init` to recreate it.
@@ -410,6 +411,7 @@ Gemini CLI — thêm vào `~/.gemini/settings.json`:
 
 **`ima2-gen không reachable` trong doctor**
 Chạy `ima2 serve` ở terminal riêng. Port mặc định 3333.
+Nếu trước đó từng chạy nhiều instance `ima2 serve`, file autodiscovery `~/.ima2/server.json` có thể trỏ vào port chết (3334+). Tắt hết process `node` / `ima2`, chạy lại 1 instance duy nhất, rồi `doctor` lại.
 
 **`AITOEARN_API_KEY chưa set`**
 Kiểm tra file `~/.social-content-mcp/.env`. Chạy lại `social-content-mcp init` để recreate.
